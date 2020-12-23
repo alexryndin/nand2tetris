@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,13 +14,15 @@ const (
 )
 
 type Translator struct {
-	parser   *Parser
-	filename string
-	id       uint64
+	parser      *Parser
+	srcFileName string
+	id          uint64
 }
 
-func newTranslator(parser *Parser, filename string) (*Translator, error) {
-	return &Translator{parser: parser, filename: filename}, nil
+func newTranslator(parser *Parser) (*Translator, error) {
+	srcFileName := filepath.Base(parser.fileName)
+	srcFileName = strings.TrimSuffix(srcFileName, filepath.Ext(srcFileName))
+	return &Translator{parser: parser, srcFileName: srcFileName}, nil
 }
 
 func (t *Translator) getID() uint64 {
@@ -207,8 +210,26 @@ func (translator *Translator) translatePP(p *PP) (string, error) {
 		default:
 			return "", fmt.Errorf("Unknown push-pop operation: %s", p.orig)
 		}
-	case STATIC:
-		varName := fmt.Sprintf("%s.%d", translator.filename, i)
+	case STATIC, TEMP, POINTER:
+		var varName string
+		switch p.segmentType {
+		case STATIC:
+			varName = fmt.Sprintf("%s.%d", translator.srcFileName, i)
+		case TEMP:
+			if i > 7 {
+				return "", fmt.Errorf("Temp address is above 7: %s", p.orig)
+			}
+			varName = fmt.Sprintf("%d", i+TEMPADDR)
+		case POINTER:
+			if i != 0 && i != 1 {
+				return "", fmt.Errorf("Pointer segment -- only 0 or 1 allowed: %s", p.orig)
+			}
+			if i == 0 {
+				varName = fmt.Sprintf("%d", THISADDR)
+			} else {
+				varName = fmt.Sprintf("%d", THATADDR)
+			}
+		}
 		switch p.commandType {
 		case POP:
 			sout = append(sout, fmt.Sprintf("@SP"))
@@ -220,62 +241,13 @@ func (translator *Translator) translatePP(p *PP) (string, error) {
 			sout = append(sout, fmt.Sprintf("@%s", varName))
 			sout = append(sout, fmt.Sprintf("D=M"))
 			sout = append(sout, fmt.Sprintf("@SP"))
-			sout = append(sout, fmt.Sprintf("AM=M+1"))
+			sout = append(sout, fmt.Sprintf("A=M"))
 			sout = append(sout, fmt.Sprintf("M=D"))
+			sout = append(sout, fmt.Sprintf("@SP"))
+			sout = append(sout, fmt.Sprintf("M=M+1"))
 		default:
 			return "", fmt.Errorf("Unknown push-pop operation: %s", p.orig)
 		}
-	case TEMP:
-		if i > 7 {
-			return "", fmt.Errorf("Temp address is above 7: %s", p.orig)
-		}
-		i += TEMPADDR
-		switch p.commandType {
-		// addr = 5 + i; *SP = *addr; SP++
-		case POP:
-			sout = append(sout, fmt.Sprintf("@SP"))
-			sout = append(sout, fmt.Sprintf("AM=M-1"))
-			sout = append(sout, fmt.Sprintf("D=M"))
-			sout = append(sout, fmt.Sprintf("@%d", i))
-			sout = append(sout, fmt.Sprintf("M=D"))
-		// addr = 5 + i; SP--; *addr = *SP
-		case PUSH:
-			sout = append(sout, fmt.Sprintf("@%d", i))
-			sout = append(sout, fmt.Sprintf("D=M"))
-			sout = append(sout, fmt.Sprintf("@SP"))
-			sout = append(sout, fmt.Sprintf("AM=M+1"))
-			sout = append(sout, fmt.Sprintf("M=D"))
-		default:
-			return "", fmt.Errorf("Unknown push-pop operation: %s", p.orig)
-		}
-	case POINTER:
-		if i != 0 && i != 1 {
-			return "", fmt.Errorf("Pointer segment -- only 0 or 1 allowed: %s", p.orig)
-		}
-		if i == 0 {
-			i = THISADDR
-		} else {
-			i = THATADDR
-		}
-		// *SP = THIS/THAT; SP++
-		switch p.commandType {
-		case POP:
-			sout = append(sout, fmt.Sprintf("@SP"))
-			sout = append(sout, fmt.Sprintf("AM=M-1"))
-			sout = append(sout, fmt.Sprintf("D=M"))
-			sout = append(sout, fmt.Sprintf("@%d", i))
-			sout = append(sout, fmt.Sprintf("M=D"))
-		// SP--; THIS/THAT = *SP
-		case PUSH:
-			sout = append(sout, fmt.Sprintf("@%d", i))
-			sout = append(sout, fmt.Sprintf("D=M"))
-			sout = append(sout, fmt.Sprintf("@SP"))
-			sout = append(sout, fmt.Sprintf("AM=M+1"))
-			sout = append(sout, fmt.Sprintf("M=D"))
-		default:
-			return "", fmt.Errorf("Unknown push-pop operation: %s", p.orig)
-		}
-
 	default:
 		return "", fmt.Errorf("Unknown push-pop operation: %s", p.orig)
 

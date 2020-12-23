@@ -22,7 +22,7 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	t, err := newTranslator(p, inputFileName)
+	t, err := newTranslator(p)
 	if err := t.translate(outputFileName); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

@@ -9,6 +9,7 @@ import (
 )
 
 type Parser struct {
+	fileName string
 	commands []VMCommand
 }
 
@@ -80,7 +81,7 @@ func newParser(filename string) (*Parser, error) {
 	}
 	defer file.Close()
 
-	parser := Parser{}
+	parser := Parser{fileName: filename}
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
