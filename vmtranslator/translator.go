@@ -1,10 +1,13 @@
 package main
 
 import (
+	tmpl "./template"
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 const (
@@ -16,13 +19,53 @@ const (
 type Translator struct {
 	parser      *Parser
 	srcFileName string
+	curFunction string
 	id          uint64
+	fd          *os.File
 }
 
-func newTranslator(parser *Parser) (*Translator, error) {
+func newTranslator(parser *Parser, dstFileName string, bootstrap bool) (*Translator, error) {
+	t, err := newEmptyTranslator(dstFileName, bootstrap)
+	if err != nil {
+		return nil, err
+	}
+	t.init(parser)
+	return t, nil
+}
+
+func newEmptyTranslator(dstFileName string, bootstrap bool) (*Translator, error) {
+	file, err := os.Create(dstFileName)
+	if err != nil {
+		return nil, err
+	}
+	t := &Translator{fd: file}
+	if bootstrap {
+		out := strings.TrimPrefix(tmpl.INIT, "\n")
+		if _, err := file.Write([]byte(out)); err != nil {
+			return nil, err
+		}
+		t.curFunction = "Sys.init"
+	}
+	return t, nil
+}
+
+func (t *Translator) init(parser *Parser) {
 	srcFileName := filepath.Base(parser.fileName)
 	srcFileName = strings.TrimSuffix(srcFileName, filepath.Ext(srcFileName))
-	return &Translator{parser: parser, srcFileName: srcFileName}, nil
+	t.srcFileName = srcFileName
+	t.parser = parser
+}
+
+func (t *Translator) close() {
+	t.fd.Close()
+}
+
+func (t *Translator) GetID() uint64 {
+	return t.getID()
+}
+
+func (t *Translator) GetCurFnName() string {
+	return t.curFunction
 }
 
 func (t *Translator) getID() uint64 {
@@ -30,12 +73,7 @@ func (t *Translator) getID() uint64 {
 	return t.id
 }
 
-func (t *Translator) translate(filename string) error {
-	file, err := os.Create(filename)
-	defer file.Close()
-	if err != nil {
-		return err
-	}
+func (t *Translator) translate(bootstrap bool) error {
 	var sout []string
 	for _, v := range t.parser.commands {
 		sout = append(sout, "// ")
@@ -52,16 +90,28 @@ func (t *Translator) translate(filename string) error {
 			} else {
 				return err
 			}
+		case *FC:
+			if translated, err := t.translateFC(ct); err == nil {
+				sout = append(sout, ct.orig, "\n", translated)
+			} else {
+				return err
+			}
+		case *Func:
+			if translated, err := t.translateFunc(ct); err == nil {
+				sout = append(sout, ct.orig, "\n", translated)
+			} else {
+				return err
+			}
 		default:
 			return fmt.Errorf("Unknown command to translate '%T'", ct)
 		}
 		sout = append(sout, "\n")
 
 	}
-	sout = append(sout, strings.TrimSpace(HEADER))
+	sout = append(sout, strings.TrimSpace(tmpl.HEADER))
 	sout = append(sout, "\n")
-	out := []byte(strings.Join(sout, ""))
-	if _, err := file.Write(out); err != nil {
+	out := strings.Join(sout, "")
+	if _, err := t.fd.Write([]byte(out)); err != nil {
 		return err
 	}
 	return nil
@@ -138,6 +188,9 @@ func (translator *Translator) translateSingle(s *Single) (string, error) {
 		sout = append(sout, fmt.Sprintf("A=M-1"))
 		sout = append(sout, fmt.Sprintf("M=-M"))
 		sout = append(sout, fmt.Sprintf("M=M-1"))
+	case RET:
+		sout = append(sout, fmt.Sprintf("@RETURN_PROCEDURE"))
+		sout = append(sout, fmt.Sprintf("0;JMP"))
 	default:
 		return "", fmt.Errorf("Unknown single operation: %s", s.orig)
 	}
@@ -253,4 +306,60 @@ func (translator *Translator) translatePP(p *PP) (string, error) {
 
 	}
 	return strings.Join(*format(&sout), "\n"), nil
+}
+
+func (t *Translator) translateFC(fc *FC) (string, error) {
+	var sout []string
+	switch fc.commandType {
+	case LABEL:
+		sout = append(sout, fmt.Sprintf("(%s$%s)", t.curFunction, fc.label))
+	case GOTO:
+		sout = append(sout, fmt.Sprintf("@%s$%s", t.curFunction, fc.label))
+		sout = append(sout, fmt.Sprintf("0;JMP"))
+	case IFGOTO:
+		sout = append(sout, fmt.Sprintf("@SP"))
+		sout = append(sout, fmt.Sprintf("AM=M-1"))
+		sout = append(sout, fmt.Sprintf("D=M"))
+		sout = append(sout, fmt.Sprintf("@%s$%s", t.curFunction, fc.label))
+		sout = append(sout, fmt.Sprintf("D;JNE"))
+	default:
+		return "", fmt.Errorf("Unknown flow control operation: %s", fc.orig)
+	}
+	return strings.Join(*format(&sout), "\n"), nil
+}
+
+func (t *Translator) translateFunc(fn *Func) (string, error) {
+	switch fn.commandType {
+	case CALL:
+		tmpl, err := template.New("call").Parse(strings.TrimSpace(tmpl.CALL))
+		if err != nil {
+			return "", err
+		}
+		var out bytes.Buffer
+		err = tmpl.Execute(&out, struct {
+			T  *Translator
+			Fn *Func
+		}{t, fn})
+		if err != nil {
+			return "", err
+		}
+		return out.String(), nil
+	case FUNC:
+		t.curFunction = fn.name
+		tmpl, err := template.New("func").Parse(strings.TrimSpace(tmpl.FUNC))
+		if err != nil {
+			return "", err
+		}
+		var out bytes.Buffer
+		err = tmpl.Execute(&out, struct {
+			T  *Translator
+			Fn *Func
+		}{t, fn})
+		if err != nil {
+			return "", err
+		}
+		return out.String(), nil
+	default:
+		return "", fmt.Errorf("Unknown function operation: %s", fn.orig)
+	}
 }

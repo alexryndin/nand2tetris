@@ -27,6 +27,12 @@ const (
 	NOT
 	POP
 	PUSH
+	LABEL
+	GOTO
+	IFGOTO
+	FUNC
+	CALL
+	RET
 )
 
 type segmentType int
@@ -48,6 +54,8 @@ type VMCommand interface {
 
 func (_ Single) isVMCommand() {}
 func (_ PP) isVMCommand()     {}
+func (_ FC) isVMCommand()     {}
+func (_ Func) isVMCommand()   {}
 
 type Single struct {
 	commandType commandType
@@ -68,6 +76,35 @@ type PP struct {
 
 func (p PP) String() string {
 	return p.orig
+}
+
+type FC struct {
+	commandType commandType
+	label       string
+	orig        string
+}
+
+func (fc FC) String() string {
+	return fc.orig
+}
+
+type Func struct {
+	commandType commandType
+	name        string
+	n           uint
+	orig        string
+}
+
+func (f Func) String() string {
+	return f.orig
+}
+
+func (f Func) GetN() uint {
+	return f.n
+}
+
+func (f Func) GetName() string {
+	return f.name
 }
 
 func (p *Parser) push(vc VMCommand) {
@@ -96,6 +133,7 @@ func newParser(filename string) (*Parser, error) {
 			continue
 		}
 		commandType := commandType(-1)
+		// Handle ADD, SUB and other arithmetics
 		switch ls[0] {
 		case "add":
 			commandType = ADD
@@ -115,6 +153,8 @@ func newParser(filename string) (*Parser, error) {
 			commandType = OR
 		case "not":
 			commandType = NOT
+		case "return":
+			commandType = RET
 		}
 		if commandType >= 0 {
 			if len(ls) != 1 {
@@ -128,6 +168,7 @@ func newParser(filename string) (*Parser, error) {
 			)
 			continue
 		}
+		// Handle PUSH and POP
 		switch ls[0] {
 		case "push":
 			commandType = PUSH
@@ -170,6 +211,52 @@ func newParser(filename string) (*Parser, error) {
 					segmentType: segment,
 					segmentName: ls[1],
 					dst:         dst,
+					orig:        strings.Join(ls, " "),
+				},
+			)
+			continue
+		}
+		// Handle Flow Control commands
+		switch ls[0] {
+		case "label":
+			commandType = LABEL
+		case "goto":
+			commandType = GOTO
+		case "if-goto":
+			commandType = IFGOTO
+		}
+		if commandType >= 0 {
+			if len(ls) != 2 {
+				return nil, fmt.Errorf("Command %s malformed, wrong number of arguments", ls[0])
+			}
+			parser.push(
+				&FC{
+					commandType: commandType,
+					label:       ls[1],
+					orig:        strings.Join(ls, " "),
+				},
+			)
+			continue
+		}
+		switch ls[0] {
+		case "function":
+			commandType = FUNC
+		case "call":
+			commandType = CALL
+		}
+		if commandType >= 0 {
+			if len(ls) != 3 {
+				return nil, fmt.Errorf("Command %s malformed, wrong number of arguments", ls[0])
+			}
+			n, err := strconv.ParseUint(ls[2], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("Command %s malformed, could't parse number, error was '%s'", ls[0], err.Error())
+			}
+			parser.push(
+				&Func{
+					commandType: commandType,
+					name:        ls[1],
+					n:           uint(n),
 					orig:        strings.Join(ls, " "),
 				},
 			)

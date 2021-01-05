@@ -1,4 +1,4 @@
-package main
+package template
 
 const HEADER = `
 // end of execution
@@ -116,6 +116,76 @@ const HEADER = `
 (GT_PROCEDURE_END)
 	@SP
 	M=M+1
+	@R13
+	A=M
+	0;JMP
+
+(RETURN_PROCEDURE)
+	@LCL
+	D=M
+	@5
+	D=D-A
+	@R13
+	AM=D
+	D=M
+	@R14
+	M=D
+	@SP
+	AM=M-1
+	D=M
+	@ARG
+	A=M
+	M=D
+	@ARG
+	D=M+1
+	@SP
+	M=D
+	@4
+	D=A
+	@R15
+	M=D
+(RETURN_PROCEDURE_LOOP)
+	@R13
+	A=D+M
+	D=M
+	@R15
+	A=M
+	M=D
+	@R15
+	MD=M-1
+	@RETURN_PROCEDURE_LOOP
+	D;JNE
+	@R14
+	A=M
+	0;JMP
+
+(CALL_PROCEDURE)
+	D=1
+	@R15
+	M=D
+(CALL_PROCEDURE_LOOP)
+	@R15
+	A=M
+	D=M
+	@SP
+	AM=M+1
+	M=D
+	@R15
+	MD=M+1
+	@4
+	D=A-D
+	@CALL_PROCEDURE_LOOP
+	D;JGE
+	@SP
+	MD=M+1
+	@LCL
+	M=D
+	@5
+	D=D-A
+	@R14
+	D=D-M
+	@ARG
+	M=D
 	@R13
 	A=M
 	0;JMP
