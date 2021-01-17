@@ -1,0 +1,186 @@
+function SString.strcmp 2
+push argument 0
+call String.length 1
+push argument 1
+call String.length 1
+sub
+pop local 0
+push local 0
+push constant 0
+eq
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push argument 0
+call String.length 1
+pop local 1
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push local 1
+lt
+not
+if-goto WHILE_END0
+push argument 0
+push local 0
+call String.charAt 2
+push argument 1
+push local 0
+call String.charAt 2
+eq
+not
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+return
+label IF_FALSE1
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+not
+return
+function SString.copy 3
+push argument 0
+call String.length 1
+pop local 2
+push local 2
+call String.new 1
+pop local 0
+label WHILE_EXP0
+push local 1
+push local 2
+lt
+not
+if-goto WHILE_END0
+push local 0
+push argument 0
+push local 1
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+return
+function SString.slice 3
+push argument 1
+push argument 2
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 2
+call Sys.error 1
+pop temp 0
+label IF_FALSE0
+push argument 1
+push argument 2
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+call String.new 1
+return
+label IF_FALSE1
+push argument 1
+push argument 2
+lt
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push argument 0
+call String.length 1
+pop local 1
+push argument 1
+push local 1
+push constant 1
+sub
+gt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 0
+call String.new 1
+return
+label IF_FALSE3
+push argument 2
+push local 1
+gt
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push local 1
+pop argument 2
+label IF_FALSE4
+push argument 2
+push argument 1
+sub
+call String.new 1
+pop local 0
+label WHILE_EXP0
+push argument 1
+push argument 2
+eq
+not
+not
+if-goto WHILE_END0
+push local 0
+push argument 0
+push argument 1
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push argument 1
+push constant 1
+add
+pop argument 1
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+return
+label IF_FALSE2
+push constant 3
+call Sys.error 1
+pop temp 0
+push constant 0
+call String.new 1
+return
+function SString.appendString 2
+push argument 1
+call String.length 1
+pop local 0
+label WHILE_EXP0
+push local 1
+push local 0
+lt
+not
+if-goto WHILE_END0
+push argument 0
+push argument 1
+push local 1
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return

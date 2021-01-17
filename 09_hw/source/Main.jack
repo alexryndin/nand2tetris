@@ -1,0 +1,12 @@
+class Main {
+    function void main() {
+        var String test;
+        var Prog p;
+        let p = Prog.new();
+        do p.run();
+        do p.mkdir("test");
+        do p.ls();
+        return;
+    }
+
+}

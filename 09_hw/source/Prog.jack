@@ -1,0 +1,367 @@
+class Prog {
+    field Node root, cur;
+    field Array onScreen;
+    field int curOnScreen, screenLength, screenWidth;
+
+
+    constructor Prog new() {
+        var String buf;
+        let root = Node.newRoot();
+        let screenLength = 22; // Actual screenLength - 1 to prevent prompt collision
+        let screenWidth = 64;
+        let onScreen = Array.new(screenLength);
+        let cur = root;
+        do output("Simple fs+shell by RAlex");
+        do output("available cmds:");
+        do output("mkdir dir");
+        do output("cd dir");
+        do output("touch filename");
+        do output("put filename newcontent");
+        do output("cat filename");
+        do output("ls");
+        do prompt();
+        do drawScreen();
+        return this;
+    }
+
+    method void mkdir(String name) {
+        var String ret;
+
+        let ret = cur.mkdir(name);
+        if (ret.length() > 0) {
+            do output(ret);
+        }
+        do ret.dispose();
+        return;
+    }
+
+    method void cat(String filename) {
+        var Node file;
+        let file = cur.getByName(filename);
+        if (~(file = null)) {
+            if (~(file.getType() = 1)) {
+                do output("Not a file");
+                return;
+            } else {
+                do output(file.getContent());
+                return;
+            }
+        }
+        do output("No such file or directory");
+        return;
+    }
+
+    method void touch(String filename) {
+        var String ret;
+
+        let ret = cur.touch(filename);
+        if (ret.length() > 0) {
+            do output(ret);
+        }
+        do ret.dispose();
+        return;
+    }
+
+    method void put(String filename, String content) {
+        var Node file;
+        let file = cur.getByName(filename);
+        if (~(file = null)) {
+            if (~(file.getType() = 1)) {
+                do output("Not a file");
+                return;
+            } else {
+                do file.setContent(content);
+                return;
+            }
+        }
+        do output("No such file or directory");
+        return;
+    }
+
+    method void ls() {
+        var int i, length;
+        var Node n;
+        var String buf;
+
+        let length = cur.getLength();
+
+        let buf = String.new(screenWidth);
+
+        while (i < length) {
+            let n = cur.getChild(i);
+
+            if (n = cur.getSame()) {
+                do SString.appendString(buf, "d .");
+            } else {
+                if (n = cur.getUpper()) {
+                    do SString.appendString(buf, "d ..");
+                } else {
+                    if (n.getType() = 0) {
+                        do SString.appendString(buf, "d ");
+                    } else {
+                        do SString.appendString(buf, "f ");
+                    }
+                    do SString.appendString(buf, n.getName());
+                }
+            }
+            do output(buf);
+            let i = i + 1;
+            do buf.dispose();
+            let buf = String.new(screenWidth);
+        }
+
+        return;
+    }
+
+    method void cd(String name) {
+        var Node new;
+        let new = cur.getByName(name);
+        if (~(new = null)) {
+            if (~(new.getType() = 0)) {
+                do output("Not a directory");
+                return;
+            } else {
+                let cur = new;
+                return;
+            }
+        }
+        do output("No such file or directory");
+        return;
+    }
+
+    method void prompt() {
+        var String buf, name, ret;
+        var Node _cur;
+        var int i, len;
+        let _cur = cur;
+        let buf = String.new(256);
+
+        while (~(_cur.isRoot())) {
+            let name = _cur.getName();
+            let i = name.length();
+            while (~(i = 0)) {
+                do buf.appendChar(name.charAt(i-1));
+                let i = i - 1;
+            }
+            let _cur = _cur.getChild(1);
+        }
+
+        do buf.appendChar(47); // '/'
+
+        let len = buf.length();
+
+        let ret = String.new(len + 3);
+        let i = len;
+
+        while (~(i = 0)) {
+            do ret.appendChar(buf.charAt(i-1));
+            let i = i - 1;
+        }
+
+        do ret.appendChar(32); // ' '
+        do ret.appendChar(36); // '$'
+        do ret.appendChar(32); // ' '
+
+        do buf.dispose();
+
+        do output(ret);
+        do ret.dispose();
+
+        return;
+
+    }
+
+    method void outputLine(String s) {
+        var String _s;
+        if (~(onScreen[curOnScreen] = null)) {
+            let _s = onScreen[curOnScreen];
+            do _s.dispose();
+        }
+        let onScreen[curOnScreen] = s;
+        let curOnScreen = curOnScreen + 1;
+        if (curOnScreen = screenLength) {
+            let curOnScreen = 0;
+        }
+        return;
+    }
+
+    /// Doesn't dispose arg
+    method void output(String s) {
+        var int length, ptr;
+       // var String l;
+        let length = s.length();
+        if (length = 0) {
+            do outputLine("");
+            return;
+        }
+        while (length > 0) { // FIXME:
+            do outputLine(SString.slice(s, ptr, screenWidth));
+            let ptr = screenWidth;
+            let length = length - screenWidth;
+        }
+        return;
+    }
+
+    method void drawScreen() {
+        var int start;
+
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
+
+        let start = curOnScreen;
+        while (onScreen[start] = null) {
+            let start = start + 1;
+            if (start = screenLength) {
+                let start = 0;
+            }
+        }
+        if (start = curOnScreen) {
+            do Output.printString(onScreen[start]);
+            do Output.println();
+            let start = start + 1;
+            if (start = screenLength) {
+                let start = 0;
+            }
+        }
+        while (~(start = curOnScreen)) {
+            do Output.printString(onScreen[start]);
+            do Output.println();
+            let start = start + 1;
+            if (start = screenLength) {
+                let start = 0;
+            }
+        }
+        return;
+    }
+
+    method void runCmdline(AArray cmdline) {
+        var String arg0;
+        var int length;
+        let length = cmdline.length();
+        if (length = 0) {
+            do output("Empty cmd");
+            return;
+        }
+
+        let arg0 = cmdline.get(0);
+
+        if (SString.strcmp(arg0, "LS")) {
+            do ls();
+            return;
+        }
+
+        if (SString.strcmp(arg0, "CD")) {
+            if (length < 2) {
+                do output("cd -- not enough arguments");
+                return;
+            }
+            do cd(cmdline.get(1));
+            return;
+        }
+
+        if (SString.strcmp(arg0, "CAT")) {
+            if (length < 2) {
+                do output("cat -- not enough arguments");
+                return;
+            }
+            do cat(cmdline.get(1));
+            return;
+        }
+
+        if (SString.strcmp(arg0, "TOUCH")) {
+            if (length < 2) {
+                do output("cat -- not enough arguments");
+                return;
+            }
+            do touch(cmdline.get(1));
+            return;
+        }
+
+        if (SString.strcmp(arg0, "PUT")) {
+            if (length < 3) {
+                do output("put -- not enough arguments");
+                return;
+            }
+            do put(cmdline.get(1), cmdline.get(2));
+            return;
+        }
+
+        if (SString.strcmp(arg0, "MKDIR")) {
+            if (length < 2) {
+                do output("mkdir -- not enough arguments");
+                return;
+            }
+            do mkdir(cmdline.get(1));
+            return;
+
+        }
+        do output("Unknown cmd");
+        return;
+    }
+
+    method AArray parseInput(String input) {
+        var int length, i, pos;
+        var AArray arr;
+        var String s;
+        let arr = AArray.new(5);
+        let length = input.length();
+
+        while (i < length) {
+            if (input.charAt(i) = 32) {
+                if (i = pos) {
+                    let i = i + 1;
+                    let pos = pos + 1;
+                } else {
+                    let s = SString.slice(input, pos, i);
+                    //do output("Appending ");
+                    //do output(s);
+                    do arr.appendSafe(s);
+                    let i = i + 1;
+                    let pos = i;
+                }
+            } else {
+                let i = i + 1;
+            }
+        }
+        let s = SString.slice(input, pos, i);
+        //do output("Appending ");
+        //do output(s);
+        do arr.appendSafe(s);
+
+        return arr;
+    }
+
+    method void run() {
+        var bool exit;
+        var char c;
+        var AArray cmdline;
+        var String input;
+        let input = String.new(screenWidth);
+        while (~(exit)) {
+            let c = KKeyboard.getChar();
+            if (((c > 47) & (c < 58) ) | // [A-Za-z0-9\ ]
+                ((c > 64) & (c < 91) ) |
+                ((c > 96) & (c < 123)) |
+                 (c = 46 )             |
+                 (c = 32 )) {
+                do input.appendChar(c);
+                do Output.printChar(c);
+            } else { if (c = 129) { // Backspace
+                if (input.length() > 0) {
+                    do input.eraseLastChar();
+                    do Output.printChar(c);
+                }
+            } else { if (c = 128) { // Enter
+                do output(input);
+                let cmdline = parseInput(input);
+                do input.dispose();
+                do runCmdline(cmdline);
+                do cmdline.disposeWithStrings();
+                do prompt();
+                do drawScreen();
+                let input = String.new(screenWidth);
+            }}}
+        }
+        return;
+    }
+}

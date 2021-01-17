@@ -1,0 +1,11 @@
+class KKeyboard {
+    function char getChar() {
+        var char c;
+        let c = Keyboard.keyPressed();
+        while (~c) {
+            let c = Keyboard.keyPressed();
+        }
+        while (~(Keyboard.keyPressed() = 0)) {}
+        return c;
+    }
+}

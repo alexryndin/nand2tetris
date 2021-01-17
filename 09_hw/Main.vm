@@ -1,0 +1,24 @@
+function Main.main 2
+call Prog.new 0
+pop local 1
+push local 1
+call Prog.run 1
+pop temp 0
+push local 1
+push constant 4
+call String.new 1
+push constant 116
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 115
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+call Prog.mkdir 2
+pop temp 0
+push local 1
+call Prog.ls 1
+pop temp 0
+push constant 0
+return

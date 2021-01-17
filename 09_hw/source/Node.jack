@@ -1,0 +1,166 @@
+class Node {
+    field Node cur;
+    field int type, length, capacity;
+    field String name, content;
+    field AArray children;
+
+    constructor Node newRoot() {
+        var Node same, upper;
+        let type = 0;
+        let name = "";
+        let children = AArray.new(5);
+
+        let same = this;
+        let upper = this;
+
+        do children.appendSafe(same);
+        do children.appendSafe(upper);
+
+        return this;
+    }
+
+    constructor Node newDir(Node parent, String _name) {
+        var Node same, upper;
+        let type = 0;
+        let length = 2;
+        let capacity = 10;
+        let name = SString.copy(_name);
+        let children = AArray.new(5);
+
+        let same = this;
+        let upper = parent;
+
+        do children.appendSafe(same);
+        do children.appendSafe(upper);
+
+        return this;
+    }
+
+    constructor Node newFile(String _name) {
+        let type = 1;
+        let name = SString.copy(_name);
+        let content = "__EMPTY__";
+        return this;
+    }
+
+    method void setContent(String _content) {
+        if (~(type = 1)) {
+            do Sys.error(2);
+        }
+        do content.dispose();
+        let content = SString.copy(_content);
+        return;
+    }
+
+    method String getContent() {
+        if (~(type = 1)) {
+            do Sys.error(2);
+        }
+        return content;
+    }
+
+    method bool isRoot() {
+        return (children.get(0) = children.get(1));
+    }
+
+    method Node getChild(int i) {
+        return children.get(i);
+    }
+
+    method String getName() {
+        return name;
+    }
+
+    method int getType() {
+        return type;
+    }
+
+    method Node getSame() {
+        return children.get(0);
+    }
+
+    method Node getUpper() {
+        return children.get(1);
+    }
+
+    method int getLength() {
+        return children.length();
+    }
+
+    method Node getByName(String name) {
+        var int i, length;
+        var Node n;
+        if (SString.strcmp(name, ".")) {
+            return children.get(0);
+        }
+        if (SString.strcmp(name, "..")) {
+            return children.get(1);
+        }
+        let i = 2;
+        let length = children.length();
+        while (i < length) {
+            let n = children.get(i);
+            if (SString.strcmp(name, n.getName())) {
+                return n;
+            }
+            let i = i + 1;
+        }
+        return null;
+    }
+
+
+    method bool exists(String name) {
+        var int i, length;
+        var Node n;
+        let i = 0;
+        let length = children.length();
+        while (i < length) {
+            let n = children.get(i);
+            if (SString.strcmp(name, n.getName())) {
+                return true;
+            }
+            let i = i + 1;
+        }
+        return false;
+    }
+
+    method String touch(String name) {
+        var Node new;
+
+        if (~(type = 0)) {
+            do Sys.error(1);
+        }
+        if (exists(name)) {
+            return "Already exists";
+        }
+
+        if (SString.strcmp("", name)) {
+            return "Empty name";
+        }
+
+        let new = Node.newFile(name);
+
+        do children.appendSafe(new);
+        return "";
+    }
+
+    method String mkdir(String name) {
+        var Node new;
+
+        if (~(type = 0)) {
+            do Sys.error(1);
+        }
+        if (exists(name)) {
+            return "Already exists";
+        }
+
+        if (SString.strcmp("", name)) {
+            return "Empty name";
+        }
+
+        let new = Node.newDir(this, name);
+
+        do children.appendSafe(new);
+        return "";
+    }
+}

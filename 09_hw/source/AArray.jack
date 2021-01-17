@@ -1,0 +1,70 @@
+class AArray {
+    field Array a;
+    field int length, capacity;
+
+    constructor AArray new(int i) {
+        if (i < 0) {
+            do Sys.error(5);
+        }
+        let length = 0;
+        let capacity = i;
+        let a = Array.new(capacity);
+        return this;
+    }
+
+    method int length() {
+        return length;
+    }
+
+    method int get(int i) {
+        if ((i = length) | (i > length)) {
+            return null;
+        }
+        return a[i];
+    }
+
+    method void appendSafe(int obj) {
+        if (capacity = length) {
+            do realloc();
+        }
+        let a[length] = obj;
+        let length = length + 1;
+        return;
+    }
+
+    method void realloc() {
+        var Array new;
+        var int i;
+        let new = Array.new(capacity * 2);
+        let i = 0;
+        while (i < capacity) {
+            let new[i] = a[i];
+            let i = i + 1;
+        }
+        do a.dispose();
+        let a = new;
+        let capacity = capacity * 2;
+        return;
+    }
+
+    method void dispose() {
+        do a.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void disposeWithStrings() {
+        var int i;
+        var String s;
+
+        while (i < length) {
+            let s = a[i];
+            do s.dispose();
+            let i = i + 1;
+        }
+
+        do a.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

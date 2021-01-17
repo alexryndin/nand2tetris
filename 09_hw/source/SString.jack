@@ -1,0 +1,92 @@
+class SString {
+
+    function bool strcmp(String s1, String s2) {
+        var int i, l;
+        let i = s1.length() - s2.length();
+        if (~(i = 0)) {
+            return false;
+        }
+        let l = s1.length();
+        let i = 0;
+        while (i < l) {
+            if (~(s1.charAt(i) = s2.charAt(i))) {
+                return false;
+            }
+            let i = i + 1;
+        }
+        return true;
+    }
+
+    function String copy(String s) {
+        var String new;
+        var int i, length;
+
+        let length = s.length();
+
+        let new = String.new(length);
+
+        while (i < length) {
+            do new.appendChar(s.charAt(i));
+            let i = i + 1;
+        }
+        return new;
+    }
+
+    function String slice(String s, int start, int end) {
+        var String buf;
+        var int l, i;
+        if (start > end) {
+            do Sys.error(2);
+        }
+        if (start = end) {
+            return "";
+        }
+        if (start < end) {
+            let l = s.length();
+            if (start > (l - 1)) {
+                return "";
+            }
+            if (end > l) {
+                let end = l;
+            }
+            let buf = String.new(end-start);
+            while (~(start = end)) {
+                do buf.appendChar(s.charAt(start));
+                let start = start + 1;
+            }
+            return buf;
+        }
+        do Sys.error(3);
+        return "";
+    }
+
+    function void appendString(String dst, String src) {
+        var int l, i;
+        let l = src.length();
+        while (i < l) {
+            do dst.appendChar(src.charAt(i));
+            let i = i + 1;
+        }
+        return;
+    }
+
+//    function String appendStringSafe(String dst, String src) {
+//        
+//    }
+//
+//    method void realloc() {
+//        var String new;
+//        var int i;
+//        let new = String.new(capacity * 2);
+//        let i = 0;
+//        while (i < capacity) {
+//            let new[i] = a[i];
+//            let i = i + 1;
+//        }
+//        do a.dispose();
+//        let a = new;
+//        let capacity = capacity * 2;
+//        return;
+//    }
+
+}
