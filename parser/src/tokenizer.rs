@@ -1,8 +1,6 @@
 use crate::token::{Token, TokenType};
-use std::fs;
 use std::fs::File;
-use std::io::{self, Lines, Read};
-use std::str::Split;
+use std::io::Read;
 
 pub trait CharSource: Iterator<Item=char> {
     fn get_source_name(&self) -> &str;

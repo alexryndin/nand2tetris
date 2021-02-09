@@ -1,8 +1,5 @@
-use crate::tokenizer::{Tokenizer, CharSource};
 use crate::token::{Token, TokenType};
 use std::io::Write;
-use std::error::Error;
-use std::mem::discriminant;
 
 
 
