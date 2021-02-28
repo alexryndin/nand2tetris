@@ -1,5 +1,4 @@
 use compiler::tokenizer::Tokenizer;
-use compiler::tokenizer::CharSource;
 use compiler::token::TokenType;
 use compiler::parser::Parser;
 use std::fs::{File, metadata, read_dir};

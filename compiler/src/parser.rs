@@ -123,19 +123,11 @@ impl<T: Iterator<Item=Token>, W: Write> Parser<T, W> {
             _                         => Err(format!("Unknown token to write -- {:?}", t.t)),
 
         }?;
-        //match write!(self.w, "{}\n", ret) {
-        //    Err(e) => Err(e.to_string()),
-        //    Ok(_) => Ok(()),
-        //};
         Ok(())
     }
 
     fn write_tag(&mut self, t: &str, open: bool) -> Result<(), String> {
         let tag = format!("<{}{}>", if open {""} else {"/"}, t);
-        //match write!(self.w, "{}\n", tag) {
-        //    Err(e) => Err(e.to_string()),
-        //    Ok(_) => Ok(()),
-        //};
         Ok(())
     }
 
@@ -332,7 +324,7 @@ impl<T: Iterator<Item=Token>, W: Write> Parser<T, W> {
         self.write_tag("expressionList", true)?;
         let mut ret = 0;
         while let Some(t) = self.t.peek() {
-            match t.t { 
+            match t.t {
                 TokenType::COMMA => {
                     expect_and_write!(self, TokenType::COMMA)?;
                     ret += 1;
@@ -661,10 +653,6 @@ impl<T: Iterator<Item=Token>, W: Write> Parser<T, W> {
         Ok(())
     }
 
-    fn write_exp(&mut self) -> Result<(), String> {
-        Ok(())
-    }
-
     fn write_push_pop(&mut self, seg: &Segment, p: &PP, idx: i32) -> Result<(), String> {
         let mut s = String::new();
         match p {
@@ -763,7 +751,7 @@ impl<T: Iterator<Item=Token>, W: Write> Parser<T, W> {
     fn write_string(&mut self, s: &str) -> Result<(), String> {
         self.write_push_pop(&Segment::CONST, &PP::PUSH, s.len().try_into().unwrap())?;
         self.write_call("String.new", 1)?;
-        for c in s.chars() { 
+        for c in s.chars() {
             self.write_push_pop(&Segment::CONST, &PP::PUSH, c as i32)?;
             self.write_call("String.appendChar", 2)?;
         }
