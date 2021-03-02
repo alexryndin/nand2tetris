@@ -5,8 +5,8 @@
 
 /**
  * A library of functions for displaying graphics on the screen.
- * The Hack physical screen consists of 512 rows (indexed 0..511, top to bottom)
- * of 256 pixels each (indexed 0..255, left to right). The top left pixel on 
+ * The Hack physical screen consists of 256 rows (indexed 0..255, top to bottom)
+ * of 512 pixels each (indexed 0..511, left to right). The top left pixel on 
  * the screen is indexed (0,0).
  */
 class Screen {

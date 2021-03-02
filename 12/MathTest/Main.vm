@@ -1,4 +1,11 @@
 function Main.main 1
+push constant 181
+push constant 181
+call Math.multiply 2
+call Output.printInt 1
+pop temp 0
+call Output.println 0
+pop temp 0
 push constant 8000
 pop local 0
 push constant 0
@@ -78,6 +85,11 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
+push constant 18000
+push constant 6
+call Math.max 2
+call Output.printInt 1
+pop temp 0
 push constant 6
 push local 0
 add
