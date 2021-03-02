@@ -1,0 +1,21 @@
+class Main {
+    function void main() {
+        if (~(1 & 4)) {
+            do Output.printString("it's true");
+        } else { // else is true case here
+            do Output.printString("it's else");
+        }
+
+        if (~(31 & 16)) {
+            do Output.printString("it's true");
+        } else { // else is true case here
+            do Output.printString("it's else");
+        }
+        do Math.init();
+        do Output.printInt(8*8);
+        do Output.printInt(-8*8);
+        do Output.printInt(8*(-8));
+        do Output.printInt(-8*(-8));
+        return;
+    }
+}

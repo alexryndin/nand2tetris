@@ -1,0 +1,80 @@
+/**
+ * A library of commonly used mathematical functions.
+ * Note: Jack compilers implement multiplication and division using OS method calls.
+ */
+class Math {
+
+    static Array twoToThe;
+
+    /** Initializes the library. */
+    function void init() {
+        let twoToThe = Array.new(17);
+        let twoToThe[0] = 0;
+        let twoToThe[1] = 1;
+        let twoToThe[2] = 2;
+        let twoToThe[3] = 4;
+        let twoToThe[4] = 8;
+        let twoToThe[5] = 16;
+        let twoToThe[6] = 32;
+        let twoToThe[7] = 64;
+        let twoToThe[8] = 128;
+        let twoToThe[9] = 256;
+        let twoToThe[10] = 512;
+        let twoToThe[11] = 1024;
+        let twoToThe[12] = 2048;
+        let twoToThe[13] = 4096;
+        let twoToThe[14] = 8192;
+        let twoToThe[15] = 16384;
+        let twoToThe[16] = -32767;
+        let twoToThe[16] = twoToThe[16] - 1;
+        return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        return 0;
+    }
+
+    /** Returns the product of x and y. 
+     *  When a Jack compiler detects the multiplication operator '*' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x*y and multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
+        var int ret, sum, i;
+        let sum = x;
+        let i = 16;
+        while (~(i=0)) {
+            if (twoToThe[17-i] & y) { // else is true case here
+                let ret = ret + sum;
+            }
+            let sum = sum + sum;
+            let i = i - 1;
+        }
+        return ret;
+    }
+
+    /** Returns the integer part of x/y.
+     *  When a Jack compiler detects the multiplication operator '/' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x/y and divide(x,y) return the same value.
+     */
+    function int divide(int x, int y) {
+        return 0;
+    }
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+        return 0;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+        return 0;
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+        return 0;
+    }
+}
