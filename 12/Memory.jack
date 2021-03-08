@@ -10,25 +10,57 @@
  */ 
 class Memory {
 
+    static Array ram, heap, last;
+    static int start, end;
+
     /** Initializes the class. */
     function void init() {
+        let ram = 0;
+        let start = 2048;
+        let end = 16384;
+        let heap = start + 2;
+        let heap[-1] = end - start - 2 // 14334
+        let heap[-2] = 0
+        let last = heap;
     }
 
     /** Returns the RAM value at the given address. */
     function int peek(int address) {
+        return ram[address];
     }
 
     /** Sets the RAM value at the given address to the given value. */
     function void poke(int address, int value) {
+        let ram[address] = value;
+        return;
     }
 
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
+        var int ret;
+        // Check first elem first
+        // First case -- entire elem is best fit
+        if (heap[-1] = size) {
+            let ret = heap;
+            let heap = heap[-2] // Next elem can be 0, so it signals OOM, or it can be simply next elem.
+            return ret;
+        }
+
+        if (heap[-2] = 0)
+
+        else {
+            while(true) { 
+
+            }
+
+
+        }
+
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
-    }    
+    }
 }
