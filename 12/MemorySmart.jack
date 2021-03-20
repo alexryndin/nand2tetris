@@ -19,10 +19,9 @@ class Memory {
         let start = 2048;
         let end = 16384;
         let heap = start + 2;
-        let heap[-1] = (end - start) - 2; // 14334
-        let heap[-2] = 0;
+        let heap[-1] = end - start - 2 // 14334
+        let heap[-2] = 0
         let last = heap;
-        return;
     }
 
     /** Returns the RAM value at the given address. */
@@ -39,47 +38,29 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
-        var int next, ret;
+        var int ret;
         // Check first elem first
         // First case -- entire elem is best fit
-        if ( heap[-1] > (size + 1) ) {
+        if (heap[-1] = size) {
             let ret = heap;
+            let heap = heap[-2] // Next elem can be 0, so it signals OOM, or it can be simply next elem.
+            return ret;
         }
-        let next = heap[-2];
-        while ( ~(next = 0) ) {
 
-            if ( next[-1] > (size + 1) ) {
-                if ( ret = 0 ) {
-                    let ret = next;
-                } else {
-                    if ( next[-1] < ret[-1] ) {
-                        let ret = next;
-                    }
-                }
+        if (heap[-2] = 0)
+
+        else {
+            while(true) { 
+
             }
 
-            let next = next[-2];
+
         }
 
-        if ( ret = 0 ) {
-            do Sys.error(6);
-        }
-
-        // Shrink found block size
-        // Change pointer to a new block
-        // initialize new block with size and next pointer (null)
-        let ret[-1] = ret[-1] - (size + 2);
-        let ret = ret + (ret[-1] + 2);
-        let ret[-2] = 0;
-        let ret[-1] = size;
-        return ret;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
-        let last[-2] = o;
-        let last = o;
-        return;
     }
 }
