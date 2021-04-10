@@ -18,9 +18,14 @@ class Output {
 
     // Character map for displaying characters
     static Array charMaps; 
+    static int xcur, ycur, lmask, hmask;
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
+        do Output.initMap();
+        let lmask = 255;
+        let hmask = -256;
+        return;
     }
 
     // Initializes the character map array
@@ -71,7 +76,7 @@ class Output {
         do Output.create(64,30,51,51,59,59,59,27,3,30,0,0);  // @
         do Output.create(63,30,51,51,24,12,12,0,12,12,0,0);  // ?
 
-        do Output.create(65,0,0,0,0,0,0,0,0,0,0,0);          // A ** TO BE FILLED **
+        do Output.create(65,12,30,51,51,63,51,51,51,51,0,0); // A
         do Output.create(66,31,51,51,51,31,51,51,51,31,0,0); // B
         do Output.create(67,28,54,35,3,3,3,35,54,28,0,0);    // C
         do Output.create(68,15,27,51,51,51,51,51,27,15,0,0); // D
@@ -176,28 +181,139 @@ class Output {
     /** Moves the cursor to the j-th column of the i-th row,
      *  and erases the character displayed there. */
     function void moveCursor(int i, int j) {
+        if ( ( i < 0 ) | ( j < 0 ) | ( i > 22 ) | ( j > 63 ) ) {
+            do Sys.error(20);
+        }
+        let xcur = j;
+        let ycur = i;
+        do Output.printChar(32);
+        let xcur = j;
+        let ycur = i;
+        return;
     }
 
     /** Displays the given character at the cursor location,
      *  and advances the cursor one column forward. */
     function void printChar(char c) {
+        var int i, j, chi, addr;
+        var Array ch;
+        var boolean shift;
+        let shift = true;
+        if ( ( xcur - ( (xcur / 2) * 2 ) ) = 0 ) {
+            let shift = false;
+        }
+        let ch = Output.getMap(c);
+        let addr = 16384 + (352 * ycur) + (xcur/2);
+        while ( i < 11 ) {
+            let chi = ch[i];
+            if ( shift ) {
+                let j = 0;
+                while ( j < 8 ) {
+                    let chi = chi + chi;
+                    let j = j + 1;
+                }
+
+            }
+            let j = Memory.peek(addr);
+            if ( shift ) {
+                let j = ( j & lmask ) | chi;
+            } else {
+                let j = ( j & hmask ) | chi;
+            }
+            do Memory.poke(addr, j);
+            let addr = addr + 32;
+            let i = i + 1;
+        }
+        let xcur = xcur + 1;
+        if ( xcur > 63 ) {
+            let xcur = 0;
+            let ycur = ycur + 1;
+        }
+        if ( ycur > 22 ) {
+            let ycur = 0;
+        }
+        return;
+
     }
 
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printString(String s) {
+        var int i, l;
+        let l = s.length();
+        while ( i < l ) {
+            do Output.printChar(s[i+2]); // Implementation dependent!
+            let i = i + 1;
+        }
+        return;
+    }
+
+    function void printDigit(int d) {
+        if ( d = 0 ) { do Output.printChar(48); return; }
+        if ( d = 1 ) { do Output.printChar(49); return; }
+        if ( d = 2 ) { do Output.printChar(50); return; }
+        if ( d = 3 ) { do Output.printChar(51); return; }
+        if ( d = 4 ) { do Output.printChar(52); return; }
+        if ( d = 5 ) { do Output.printChar(53); return; }
+        if ( d = 6 ) { do Output.printChar(54); return; }
+        if ( d = 7 ) { do Output.printChar(55); return; }
+        if ( d = 8 ) { do Output.printChar(56); return; }
+        if ( d = 9 ) { do Output.printChar(57); return; }
+        return;
+    }
+
+    function int getDigit(int i) {
+        var int tmp, div;
+        if ( i > 10 ) { let div = 10; }
+        if ( i > 100 ) { let div = 100; }
+        if ( i > 1000 ) { let div = 1000; }
+        if ( i > 10000 ) { let div = 10000; }
+        if ( div = 0 ) {
+            do Output.printDigit(i);
+            return -1;
+        } else {
+            let tmp = i / div;
+            do Output.printDigit(tmp);
+            return i - (tmp * div);
+        }
     }
 
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
+        if (i < 0) {
+            do Output.printChar(45);
+            let i = -i;
+        }
+        while (i > -1) {
+            let i = Output.getDigit(i);
+        }
+        return;
     }
 
     /** Advances the cursor to the beginning of the next line. */
     function void println() {
+        let xcur = 0;
+        let ycur = ycur + 1;
+
+        if ( ycur > 22 ) {
+            let ycur = 0;
+        }
+
+        return;
     }
 
     /** Moves the cursor one column back. */
     function void backSpace() {
+        let xcur = xcur - 1;
+
+        if ( xcur < 0 ) {
+            let xcur = 0;
+        }
+
+        do Output.printChar(32);
+        let xcur = xcur - 1;
+
+        return;
     }
 }
