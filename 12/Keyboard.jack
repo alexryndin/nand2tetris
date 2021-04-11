@@ -10,6 +10,7 @@ class Keyboard {
 
     /** Initializes the keyboard. */
     function void init() {
+        return;
     } 
 
     /**
@@ -33,6 +34,34 @@ class Keyboard {
      * F1 - F12 = 141 - 152
      */
     function char keyPressed() {
+        return Memory.peek(24576);
+    }
+
+    function char _readChar(boolean print) {
+        var char ch;
+        do Output.printChar(0);
+        do Output.backCursor();
+        while ( ch = 0 ) {
+            let ch = Keyboard.keyPressed();
+        }
+        while ( ~ ( Keyboard.keyPressed() = 0 ) ) {
+        }
+
+        if (print) {
+            if ( ch = 128 ) {
+                do Output.printChar(32);
+                do Output.println();
+                return ch;
+            }
+            if ( ch = 129 ) {
+                do Output.printChar(32);
+                do Output.backCursor();
+                do Output.backCursor();
+                return ch;
+            }
+            do Output.printChar(ch);
+        }
+        return ch;
     }
 
     /**								
@@ -41,6 +70,7 @@ class Keyboard {
      * of the pressed key.
      */
     function char readChar() {
+        return Keyboard._readChar(true);
     }
 
     /**								
@@ -49,7 +79,52 @@ class Keyboard {
      * and returns its value. Also handles user backspaces.
      */
     function String readLine(String message) {
-    }   
+        var int cur, i;
+        var String buf, ret;
+        var char ch;
+
+        let buf = String.new(255);
+
+        do Output.printString(message);
+
+        while ( ~ ( ch = 128 ) ) {
+            let ch = Keyboard._readChar(false);
+            if ( ch = 129 ) {
+                if ( cur > 0 ) {
+                    let cur = cur - 1;
+                    do buf.eraseLastChar();
+                    do Output.printChar(32);
+                    do Output.backCursor();
+                    do Output.backCursor();
+                }
+            } else {
+                if ( ~ ( ch = 128 ) ) {
+                    if ( buf.length() < 255 ) {
+                        do Output.printChar(ch);
+                        do buf.appendChar(ch);
+                        let cur = cur + 1;
+                    }
+                }
+            }
+
+        }
+
+        do Output.printChar(32);
+        do Output.println();
+
+        let ret = String.new(buf.length());
+
+        while ( i < cur ) {
+            do ret.appendChar(buf[i+2]); // Implementation specific!
+            let i = i + 1;
+        }
+
+        do buf.dispose();
+
+        return ret;
+    }
+
+
 
     /**								
      * Displays the message on the screen, reads from the keyboard the entered
@@ -58,5 +133,37 @@ class Keyboard {
      * entered text is detected). Also handles user backspaces. 
      */
     function int readInt(String message) {
+        var String input;
+        var int i, l, ret, ch;
+        var boolean inverse;
+        let input = Keyboard.readLine(message);
+        let l = input.length();
+        if (l = 0) {
+            return 0;
+        }
+        if ( input[2] = 45 ) { // Implementation specific!
+            let inverse = true;
+            let i = 1;
+        }
+        while ( i < l ) {
+            if ( ( input[2 + i] < 48 ) | ( input[2 + i] > 57 ) ) {
+                if ( inverse ) {
+                    let ret = -ret;
+                }
+                return ret;
+            }
+
+            let ret = ret * 10;
+
+            let ret = ret + ( input[2 + i] - 48 );
+
+            let i = i + 1;
+        }
+
+        if ( inverse ) {
+            let ret = -ret;
+        }
+
+        return ret;
     }
 }
