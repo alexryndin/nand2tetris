@@ -115,7 +115,7 @@ class Keyboard {
         let ret = String.new(buf.length());
 
         while ( i < cur ) {
-            do ret.appendChar(buf[i+2]); // Implementation specific!
+            do ret.appendChar(buf.charAt(i));
             let i = i + 1;
         }
 
@@ -141,7 +141,7 @@ class Keyboard {
         if (l = 0) {
             return 0;
         }
-        if ( input[2] = 45 ) { // Implementation specific!
+        if ( input.charAt(0) = 45 ) {
             let inverse = true;
             let i = 1;
         }

@@ -29,6 +29,10 @@ class Math {
         return;
     }
 
+    function Array getTwoToThe() {
+        return twoToThe;
+    }
+
     /** Returns the absolute value of x. */
     function int abs(int x) {
         if ( x < 0 ) {

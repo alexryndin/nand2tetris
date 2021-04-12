@@ -242,7 +242,7 @@ class Output {
         var int i, l;
         let l = s.length();
         while ( i < l ) {
-            do Output.printChar(s[i+2]); // Implementation dependent!
+            do Output.printChar(s.charAt(i));
             let i = i + 1;
         }
         return;
@@ -300,6 +300,19 @@ class Output {
             let ycur = 0;
         }
 
+        return;
+    }
+
+    function void backCursor() {
+        let xcur = xcur - 1;
+
+        if ( xcur < 0 ) {
+            let xcur = 63;
+            let ycur = ycur - 1;
+            if ( ycur < 0 ) {
+                let ycur = 22;
+            }
+        }
         return;
     }
 
