@@ -12,53 +12,129 @@
  */
 class String {
 
+    field int len, mlen;
+    field Array s;
+
     /** constructs a new empty string with a maximum length of maxLength
      *  and initial length of 0. */
     constructor String new(int maxLength) {
+        if ( maxLength > 0 ) {
+            let s = Array.new(maxLength);
+        }
+        let mlen = maxLength;
+        return this;
     }
 
     /** Disposes this string. */
     method void dispose() {
+        if ( mlen > 0 ) {
+            do s.dispose();
+        }
+        return;
     }
 
     /** Returns the current length of this string. */
     method int length() {
+        return len;
     }
 
     /** Returns the character at the j-th location of this string. */
     method char charAt(int j) {
+        if ( (j + 1) > len ) {
+            do Sys.error(15);
+        }
+        return s[j];
     }
 
     /** Sets the character at the j-th location of this string to c. */
     method void setCharAt(int j, char c) {
+        if ( (j + 1) > len ) {
+            do Sys.error(16);
+        }
+        let s[j] = c;
+        return;
     }
 
     /** Appends c to this string's end and returns this string. */
     method String appendChar(char c) {
+        if ( len = mlen ) {
+            do Sys.error(17);
+        }
+        let s[len] = c;
+        let len = len + 1;
+        return this;
     }
 
     /** Erases the last character from this string. */
     method void eraseLastChar() {
+        if ( len = 0 ) {
+            do Sys.error(18);
+        }
+        let len = len - 1;
+        return;
     }
 
     /** Returns the integer value of this string, 
      *  until a non-digit character is detected. */
     method int intValue() {
+        return Keyboard.parseInt(this);
+    }
+
+    function char getDigit(int d) {
+        if ( d = 0 ) { return 48; }
+        if ( d = 1 ) { return 49; }
+        if ( d = 2 ) { return 50; }
+        if ( d = 3 ) { return 51; }
+        if ( d = 4 ) { return 52; }
+        if ( d = 5 ) { return 53; }
+        if ( d = 6 ) { return 54; }
+        if ( d = 7 ) { return 55; }
+        if ( d = 8 ) { return 56; }
+        if ( d = 9 ) { return 57; }
+        return 0;
+    }
+
+    method int setDigit(int i) {
+        var int tmp, div;
+        if ( i > 10 ) { let div = 10; }
+        if ( i > 100 ) { let div = 100; }
+        if ( i > 1000 ) { let div = 1000; }
+        if ( i > 10000 ) { let div = 10000; }
+        if ( div = 0 ) {
+            do appendChar(String.getDigit(i));
+            return -1;
+        } else {
+            let tmp = i / div;
+            do appendChar(String.getDigit(tmp));
+            return i - (tmp * div);
+        }
     }
 
     /** Sets this string to hold a representation of the given value. */
-    method void setInt(int val) {
+    method void setInt(int i) {
+        let len = 0;
+        if (i < 0) {
+            do appendChar(45);
+            let i = -i;
+        }
+        while (i > -1) {
+            let i = setDigit(i);
+        }
+        return;
     }
 
     /** Returns the new line character. */
     function char newLine() {
+        return 128;
     }
 
     /** Returns the backspace character. */
     function char backSpace() {
+        return 129;
     }
 
     /** Returns the double quote (") character. */
     function char doubleQuote() {
+        return 34;
     }
 }
